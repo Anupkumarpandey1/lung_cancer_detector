@@ -1,0 +1,239 @@
+
+ <!DOCTYPE html>
+<html>
+<head>
+    <title>CT Scan Analysis & Health Planner</title>
+    <style>
+        :root {
+            --primary: #2A5C82;
+            --secondary: #5DA9E9;
+            --danger: #E63946;
+            --success: #2A9D8F;
+            --warning: #E9C46A;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f4f8;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+        }
+
+        .input-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            transition: transform 0.2s;
+        }
+
+        .input-section:hover {
+            transform: translateY(-3px);
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s;
+            margin: 10px 0;
+        }
+
+        button:hover {
+            background: var(--secondary);
+            transform: scale(1.05);
+        }
+
+        #webcam-container, #previewImage {
+            border: 3px solid var(--primary);
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .result-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .recommendation-section {
+            margin-top: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .health-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .health-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .health-card h3 {
+            color: var(--primary);
+            margin-top: 0;
+        }
+
+        .oncologist-section {
+            background: var(--warning);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .probability-bar {
+            height: 10px;
+            background: #eee;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .probability-fill {
+            height: 100%;
+            background: var(--primary);
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🩺 CT Scan Analysis & Health Planner</h1>
+
+        <div class="input-section">
+            <h2>📷 Live Webcam Analysis</h2>
+            <button onclick="initWebcam()">🎥 Start Webcam Analysis</button>
+            <div id="webcam-container"></div>
+        </div>
+
+        <div class="input-section">
+            <h2>📁 File Upload Analysis</h2>
+            <input type="file" id="fileInput" accept="image/*" hidden>
+            <button onclick="document.getElementById('fileInput').click()">📤 Upload CT Scan</button>
+            <button onclick="analyzeUpload()">🔍 Analyze Image</button>
+            <img id="previewImage" class="preview-image">
+        </div>
+
+        <div id="label-container"></div>
+        <div id="recommendations-container"></div>
+    </div>
+
+    <!-- Keep the original script section but modify displayResults function -->
+    <script>
+        // ... [Keep all original JavaScript code the same until displayResults function ...]
+
+        function displayResults(predictions) {
+            labelContainer.innerHTML = '';
+            const recommendationsContainer = document.getElementById('recommendations-container');
+            recommendationsContainer.innerHTML = '';
+
+            predictions.sort((a, b) => b.probability - a.probability);
+
+            predictions.forEach(p => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `result-card ${p.className.toLowerCase()}`;
+                
+                resultDiv.innerHTML = `
+                    <h2>Diagnosis: ${p.className}</h2>
+                    <div class="probability-bar">
+                        <div class="probability-fill" style="width: ${p.probability * 100}%"></div>
+                    </div>
+                    <p>Confidence: ${(p.probability * 100).toFixed(2)}%</p>
+                `;
+
+                labelContainer.appendChild(resultDiv);
+
+                // Add health recommendations
+                if (p.className.toLowerCase().includes('malignant') || 
+                    p.className.toLowerCase().includes('benign')) {
+                    recommendationsContainer.innerHTML = `
+                        <div class="recommendation-section">
+                            <h2>📋 Health Recommendations</h2>
+                            <div class="health-grid">
+                                <div class="health-card">
+                                    <h3>🍎 Diet Plan</h3>
+                                    <ul>
+                                        <li>High antioxidant foods (berries, leafy greens)</li>
+                                        <li>Omega-3 rich foods (fatty fish, walnuts)</li>
+                                        <li>Limit processed foods and red meat</li>
+                                        <li>Stay hydrated (2-3 liters/day)</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="health-card">
+                                    <h3>🏋️ Exercise Routine</h3>
+                                    <ul>
+                                        <li>30-min daily moderate exercise</li>
+                                        <li>Yoga/meditation for stress management</li>
+                                        <li>Strength training 2x/week</li>
+                                        <li>Regular walking routine</li>
+                                    </ul>
+                                </div>
+                                
+                                <div class="health-card">
+                                    <h3>⚠️ Precautions</h3>
+                                    <ul>
+                                        <li>Regular medical checkups</li>
+                                        <li>Monitor symptoms daily</li>
+                                        <li>Avoid smoking/alcohol</li>
+                                        <li>Maintain sleep hygiene</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="oncologist-section">
+                                <h3>🩺 Next Steps</h3>
+                                <p>Please consult with a certified oncologist immediately</p>
+                                <button onclick="findOncologist() ">📍 Find Nearest Oncologist</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+/*************  ✨ Codeium Command ⭐  *************/
+        /**
+         * Finds nearest oncologists in the user's area using geolocation
+         * and an API like Google Maps Places API.
+         */
+/******  4cfb6274-ee8e-4e35-b463-d1dd304ea13b  *******/
+        function findOncologist() {
+            // Implement oncologist finding logic
+            alert("Searching for oncologists in your area...");
+        }
+    </script>
+</body>
+</html>
